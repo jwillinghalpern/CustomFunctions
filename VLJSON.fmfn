@@ -1,6 +1,7 @@
 /* 
  * ---<>---<>---<>---<>---<>---<>---<>---<>---<>---<>---<>---<>---<>---<>---<>---<>---
- * NAME: VLJSON ( query ; params ) 
+ * VLJSON ( query ; params ) 
+ *
  * DESCRIPTION: Returns data from an sql query in nested json arrays, e.g:
  * 		[
  * 			["f1","f2","f3"],
