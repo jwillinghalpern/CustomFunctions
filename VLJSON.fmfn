@@ -1,0 +1,56 @@
+/* 
+ * ---<>---<>---<>---<>---<>---<>---<>---<>---<>---<>---<>---<>---<>---<>---<>---<>---
+ * NAME: VLJSON ( query ; params ) 
+ * DESCRIPTION: Returns data from an sql query in nested json arrays, e.g:
+ * 		[
+ * 			["f1","f2","f3"],
+ * 			["f4","f5","f6"],
+ * 			["f7","f8","f9"]
+ * 		]
+ * PARAMS:
+ * 	query: A valid sql query as text. The query may include the characteristic '?' 
+ * 		variables like ExecuteSQL() uses.
+ * 	params: A return-delimited list of params to feed the sql statement.
+ * HISTORY:
+ * 	CREATED 2017-10-17 - Joshua Halpern <http://scr.im/willing>
+ * ---<>---<>---<>---<>---<>---<>---<>---<>---<>---<>---<>---<>---<>---<>---<>---<>--- 
+*/
+
+
+Let ([
+	~fDelim = "<fld>";
+	~rDelim = "<rec>";
+	~query = Quote ( query );
+	~params = Substitute ( params ; ¶ ; ";" );
+	~queryWrapped = 
+		"ExecuteSQL ( " & ~query & "; " 
+		& Quote ( ~fDelim )
+		& " ; " 
+		& Quote ( ~rDelim )
+		& If ( 
+			not IsEmpty ( ~params ) ; 
+			" ; " & ~params ; 
+			"" 
+		)
+		& " )" ;
+	~result = Evaluate ( ~queryWrapped );
+	~sub = 
+		Substitute ( 
+			~result ;
+			[ Char(92) ; "\\\\" ];        /* backslash */
+			[ Char(34) ; "\\\"" ];        /* double quote */
+			[ Char(8) ; "\b" ];           /* backspace */
+			[ Char(9) ; "\t" ];           /* tab */
+			[ Char(13) ; "\r" ];          /* return */
+			[ Char(10) ; "\r" ];          /* enter */
+			[ ~fDelim ; "\",\"" ] ;       /* field delimiter */
+			[ ~rDelim ; "\"],[\"" ]       /* record delimiter */
+		) ;
+	~subWrapped = "[[\"" & ~sub & "\"]]"
+];
+	~subWrapped
+)
+
+
+
+
