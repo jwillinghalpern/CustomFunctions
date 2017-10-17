@@ -1,2 +1,2 @@
 # CustomFunctions
-General storage for CFs
+General storage for Filemaker Custom Functions.
