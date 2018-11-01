@@ -1,0 +1,37 @@
+/**
+ * RangesOverlap ( start1 ; end1 ; start2 ; end2 )
+ * 
+ * PURPOSE: 
+ * 	- Check if ranges overlap
+ * 
+ * NOTES:
+ * 	- Works for dates and/or numbers. Uses GetAsNumber so be careful about what you input
+ * 
+ * WARNING:
+ * 	- Date strings like "11/23/2018" become 11232018. Be sure the input is an actual date type if you want to compare dates.
+ * 
+ * RESULT: 
+ * 	1 if ranges overlap
+ *	0 if they do not
+ *	? if error
+ *	
+ * HISTORY:
+ * 	2018-11-01	Joshua Willing
+ * 		- Created
+ * 
+ */
+
+Let ([
+	start1 = GetAsNumber ( start1 );
+	end1 = GetAsNumber ( end1 );
+	start2 = GetAsNumber ( start2 );
+	end1 = GetAsNumber ( end1 )
+];
+	If ( 
+		IsEmpty ( start1 ) or IsEmpty ( end1 ) or IsEmpty ( start2 ) or IsEmpty ( end2 );
+			"?" ;
+		// else
+			end2 >= start1 and start2 <= end1
+	)
+		
+)
