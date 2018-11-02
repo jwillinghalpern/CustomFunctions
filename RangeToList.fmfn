@@ -1,0 +1,22 @@
+/**
+ * RangeToList ( from ; to ; theListToAppend)
+ * 
+ * PURPOSE: 
+ * 	- Explodes a range into a list format. handles up to 49999 values
+ *	- Accepts numbers or dates, but dates must have a date data type. You can't just use date strings like "1/23/2018". Make use of the Date() and GetAsDate() functions to create date inputs, or reference a date field.
+ *
+ * HISTORY:
+ * 	2018-11-02	Joshua Willing	
+ * 		- Created
+ * 
+ */
+
+
+Case ( 
+	from > to ; 
+		"" ;
+	from = to ;
+		List ( theListToAppend ; from ) ;
+	// else
+		RangeToList ( from + 1 ; to ; List ( theListToAppend ; from ) )
+)
