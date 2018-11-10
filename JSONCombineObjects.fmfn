@@ -1,0 +1,30 @@
+/*
+JSONCombineObjects ( object1 ; object2 )
+PURPOSE:
+	Combines two valid JSON objects into one big JSON object
+OUTPUT:
+	A new valid json object.
+	? if either input is not a valid JSON object.
+	A standard json parse error if the resulting object is invalid. E.g. if it has duplicate keys.
+REVISIONS:
+	2018-11-10	Joshua Willing	jwillinghalpern@gmail.com
+		- CREATED
+*/
+
+Let ([
+	~isInvalid1 = Left ( JSONFormatElements ( object1 ) ; 1 ) <> "{";
+	~posStart1 = Position ( object1 ; "{" ; 1 ; 1 );
+	~posEnd1 = Position ( object1 ; "}" ; Length ( object1 ) ; -1 );
+	~props1 = Middle ( object1 ; ~posStart1 + 1 ; ~posEnd1 - ~posStart1 - 1 );
+
+	~isInvalid2 = Left ( JSONFormatElements ( object2 ) ; 1 ) <> "{";
+	~posStart2 = Position ( object2 ; "{" ; 1 ; 1 );
+	~posEnd2 = Position ( object2 ; "}" ; Length ( object2 ) ; -1 );
+	~props2 = Middle ( object2 ; ~posStart2 + 1 ; ~posEnd2 - ~posStart2 - 1 );
+
+	~newObj = "{" & ~props1 & "," & ~props2 & "}" ;
+	~newObj = JSONFormatElements ( ~newObj );
+	~result = If ( Left ( ~newObj ; 1 ) = "?" ; ~newObj ; JSONGetElement ( ~newObj ; "" ) )
+];
+	~result
+)
