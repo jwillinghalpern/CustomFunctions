@@ -21,6 +21,7 @@
  *		won't work on large json due to filemaker's evaluation character limit
  *	
  * HISTORY:
+ *		MODFIED on 2019-01-28 by Josh Willing: handle source obj with no props
  *		CREATED on 2019-01-27 by Josh Willing <http://scr.im/willing>
  * =====================================
  */
