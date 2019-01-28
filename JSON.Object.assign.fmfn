@@ -1,0 +1,63 @@
+/**
+ * =====================================
+ * JSON.Object.assign ( target ; source )
+ *
+ * PURPOSE:
+ *		same as javascript's Object.assign. 
+ *		<https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/assign>
+ *
+ * RETURNS:
+ *		returns object
+ *
+ * PARAMETERS:
+ *		target | the object you want to assign props to
+ *		source | the object whose props you want to go in the target
+ *
+ * DEPENDENCIES: 
+ *		JSON.DataType
+ *		CustomList
+ *
+ * NOTES:
+ *		won't work on large json due to filemaker's evaluation character limit
+ *	
+ * HISTORY:
+ *		CREATED on 2019-01-27 by Josh Willing <http://scr.im/willing>
+ * =====================================
+ */
+Let ([
+	~target = JSONFormatElements ( target ) ;
+	~source = JSONFormatElements ( source ) ;
+	~targetIsValid = Left ( ~target ; 1 ) <> "?" ;
+	~sourceIsValid = Left ( ~source ; 1 ) <> "?" ; 
+	~targetIsObj = Left ( ~target ; 1 ) = "{" ;
+	~sourceIsObj = Left ( ~source ; 1 ) = "{" ;
+	~result = If ( not ~targetIsValid or not ~sourceIsValid or not ~targetIsObj or not ~sourceIsObj ; "?" ; 
+		Let ([
+			$OA.target = target ;
+			$OA.source = source ;
+			$OA.keys = JSONListKeys ( source ; "" ) ;
+			~count = ValueCount ( $OA.keys ) ;
+			~exp = 
+				List (
+					"Let ([" ;
+						"~key = GetValue ( $OA.keys ; [n] );" ;
+						"~val = JSONGetElement ( $OA.source ; ~key );" ;
+						"~type = JSON.DataType ( ~val ) " ;
+					"];" ;
+						"\"[ \" & Quote ( ~key ) & \" ; \" & Quote ( ~val ) & \" ; \" & ~type & \" ]\"";  
+					")" 
+				) ;					
+			~list = CustomList ( 1 ; ~count ; ~exp  );
+			~list = Substitute ( ~list ; ¶ ; ";¶" );
+			~evalExp = "JSONSetElement ( $OA.target ; ¶" & ~list & "¶)";
+			~eval = Evaluate ( ~evalExp );
+
+		~nil=""
+				
+		];
+			~eval
+		)
+	)
+];
+	~result
+)

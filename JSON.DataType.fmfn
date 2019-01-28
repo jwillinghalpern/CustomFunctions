@@ -1,0 +1,41 @@
+/**
+ * =====================================
+ * JSON.DataType ( item )
+ *
+ * PURPOSE:
+ *		return the corresponding datatype code used by filemaker for the item
+ *
+ * RETURNS:
+ *		a number corresponding to JSONNumber, JSONObject, JSONArray, or JSONString
+ *
+ * PARAMETERS:
+ *		item | the item you want to get the type for
+ *
+ * DEPENDENCIES: none
+ *
+ * NOTES:
+ *
+ * HISTORY:
+ *		CREATED on 2019-01-27 by Josh Willing <http://scr.im/willing>
+ * =====================================
+ */
+
+/* NOTE: should we infer JSONNull ever? */
+
+Let ([
+	~isJSON = Left ( JSONFormatElements ( item ) ; 1 ) <> "?" ;
+	~result = Case ( 
+	//	item = "" ;
+	//		JSONNull ;
+		Exact ( GetAsNumber ( item ) ; item );
+			JSONNumber ;
+		~isJSON and Left ( TrimAll ( item ; True ; 3 ) ; 1 ) = "{" ;
+			JSONObject ;
+		~isJSON and Left ( TrimAll ( item ; True ; 3 ) ; 1 ) = "[" ;
+			JSONArray ;
+		/* Else */
+			JSONString
+	)
+];
+	~result
+)
