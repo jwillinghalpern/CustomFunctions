@@ -51,6 +51,9 @@ Let ([
 			~list = Substitute ( ~list ; ¶ ; ";¶" );
 			~evalExp = "JSONSetElement ( $OA.target ; ¶" & ~list & "¶)";
 			~eval = Evaluate ( ~evalExp );
+			$OA.target = "";
+			$OA.source = "";
+			$OA.keys = "";
 
 		~nil=""
 				
