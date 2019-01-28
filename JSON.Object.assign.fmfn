@@ -50,7 +50,7 @@ Let ([
 			~list = CustomList ( 1 ; ~count ; ~exp  );
 			~list = Substitute ( ~list ; ¶ ; ";¶" );
 			~evalExp = "JSONSetElement ( $OA.target ; ¶" & ~list & "¶)";
-			~eval = Evaluate ( ~evalExp );
+			~eval = If ( ~count <> 0 ; Evaluate ( ~evalExp ) ; target );
 			$OA.target = "";
 			$OA.source = "";
 			$OA.keys = "";
