@@ -2,6 +2,9 @@
 by Christopher Gauntt, Cordega Solutions, www.cordega.com
 solutions@cordega.com
 
+v2.9 DEC 6, 2025	Josh Willing (code courtesy of steve_ssh)
+- accumulate styles as a number (sum of style constants) rather than string to be evaluated.
+
 v2.8 DEC 5, 2025	Josh Willing
 - convert from recursion to While iteration
 - support bullet points
@@ -79,23 +82,23 @@ While ([
 
 
 	// Collects Text Styles
-	~styles = If ( PatternCount ( ~Span ; "Bold" ) = 1 ; "+Bold" ; "" ) 
-	& If ( PatternCount ( ~Span ; "Italic" ) = 1 ; "+Italic" ; "" ) 
-	& If ( PatternCount ( ~Span ; "Underline" ) = 1 ; "+Underline" ; "" ) 
-	& If ( PatternCount ( ~Span ; "letter-spacing: -2px" ) = 1 ; "+Condense" ; "" ) 
-	& If ( PatternCount ( ~Span ; "letter-spacing: 2px" ) = 1 ; "+Extend" ; "" ) 
-	& If ( PatternCount ( ~Span ; "text-decoration:line-through" ) = 1 ; "+Strikethrough" ; "" ) 
-	& If ( PatternCount ( ~Span ; "small-caps" ) = 1 ; "+SmallCaps" ; "" ) 
-	& If ( PatternCount ( ~Span ; "vertical-align: text-top" ) = 1 ; "+Superscript" ; "" ) 
-	& If ( PatternCount ( ~Span ; "vertical-align: text-bottom" ) = 1 ; "+Subscript" ; "" ) 
-	& If ( PatternCount ( ~Span ; "Uppercase" ) = 1 ; "+Uppercase" ; "" ) 
-	& If ( PatternCount ( ~Span ; "Lowercase" ) = 1 ; "+Lowercase" ; "" ) 
-	& If ( PatternCount ( ~Span ; "capitalize" ) = 1 ; "+Titlecase" ; "" ) 
-	& If ( PatternCount ( ~Span ; "WordUnderline" ) = 1 ; "+WordUnderline" ; "" ) 
-	& If ( PatternCount ( ~Span ; "DoubleUnderline" ) = 1 ; "+DoubleUnderline" ; "" ) 
-	& If ( PatternCount ( ~Span ; "background-color: #FFFF00" ) = 1 ; "+HighlightYellow" ; "" ) ;
-
-	~stylesTrue = If ( IsEmpty (~styles) ; "" ; Right (~styles ; Length (~styles) -1) ) ;
+	~SuperscriptSearchString = "vertical-align: text-top" ;
+	~SubscriptSearchString = "vertical-align: text-bottom" ;
+	~styles = If ( PatternCount ( ~Span ; "Bold" ) = 1 ; Bold ; 0 ) 
+	+ If ( PatternCount ( ~Span ; "Italic" ) = 1 ; Italic ; 0 ) 
+	+ If ( PatternCount ( ~Span ; "Underline" ) = 1 ; Underline ; 0 ) 
+	+ If ( PatternCount ( ~Span ; "letter-spacing: -2px" ) = 1 ; Condense ; 0 ) 
+	+ If ( PatternCount ( ~Span ; "letter-spacing: 2px" ) = 1 ; Extend ; 0 ) 
+	+ If ( PatternCount ( ~Span ; "text-decoration:line-through" ) = 1 ; Strikethrough ; 0 ) 
+	+ If ( PatternCount ( ~Span ; "small-caps" ) = 1 ; SmallCaps ; 0 ) 
+	+ If ( PatternCount ( ~Span ; ~SuperscriptSearchString ) = 1 ; Superscript ; 0 ) 
+	+ If ( PatternCount ( ~Span ; ~SubscriptSearchString ) = 1 ; Subscript ; 0 ) 
+	+ If ( PatternCount ( ~Span ; "Uppercase" ) = 1 ; Uppercase ; 0 ) 
+	+ If ( PatternCount ( ~Span ; "Lowercase" ) = 1 ; Lowercase ; 0 ) 
+	+ If ( PatternCount ( ~Span ; "capitalize" ) = 1 ; Titlecase ; 0 ) 
+	+ If ( PatternCount ( ~Span ; "WordUnderline" ) = 1 ; WordUnderline ; 0 ) 
+	+ If ( PatternCount ( ~Span ; "DoubleUnderline" ) = 1 ; DoubleUnderline ; 0 ) 
+	+ If ( PatternCount ( ~Span ; "background-color: #FFFF00" ) = 1 ; HighlightYellow ; 0 ) ;
 
 	~hasTextDecoration = Position ( ~Span ; "text-decoration:" ; 1 ; 1 ) <> 0 ;
 
@@ -115,7 +118,7 @@ While ([
 
 	// Adjusts font size for Sub/Super-script
 	~FontSize = Case ( 
-		PatternCount ( ~styles ; "Superscript" ) + PatternCount ( ~styles ; "Subscript" ) = 0 ; 
+		PatternCount ( ~Span ; ~SuperscriptSearchString ) + PatternCount ( ~Span ; ~SubscriptSearchString ) = 0 ; 
 		~FontSize ;
 		~FontSize * 2
 	) ;
@@ -157,7 +160,7 @@ While ([
 
 
 	// converts the text string between the span tags into the filemaker conversions from the above
-	~ConvertedText = If ( IsEmpty ( ~stylesTrue ) ; ~Text ; TextStyleAdd ( ~Text ; Evaluate ( ~stylesTrue ) ) ) ;
+	~ConvertedText = If ( ~styles = 0 ; ~Text ; TextStyleAdd ( ~Text ; ~styles ) ) ;
 	~ConvertedText = If ( IsEmpty ( ~FontSize ) ; ~ConvertedText ; TextSize ( ~ConvertedText ; ~FontSize ) ) ;
 	~ConvertedText = If ( IsEmpty ( ~FontType ) ; ~ConvertedText ; TextFont ( ~ConvertedText ; ~FontType ) ) ;
 	~ConvertedText = If ( IsEmpty ( ~FontColor ) ; ~ConvertedText ; TextColor ( ~ConvertedText ; ~FontColor ) ) ;
