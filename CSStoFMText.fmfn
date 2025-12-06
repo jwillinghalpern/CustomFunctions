@@ -2,15 +2,6 @@
 by Christopher Gauntt, Cordega Solutions, www.cordega.com
 solutions@cordega.com
 
-v2.8 DEC 5, 2025	Josh Willing
-- convert from recursion to While iteration
-- support bullet points
-- fix condense, extend, titlecase, strikethrough, small-caps
-- fix "sticky" text decorations like strikethrough and underline, which would cause all subsequent divs to have that decoration.
-
-v2.7 DEC 5, 2025	Josh Willing
-- remove Evaluate call from FontType to avoid evaluating injected malicious code. Thanks to Chris Irvine for pointing out the vulnerability.
-
 v2.6 AUG 22, 2024	Josh Willing
 - convert encoded html entities back to characters
 
@@ -40,156 +31,146 @@ v2.0 April 06, 2009
 Description:
 This takes CSS styled text and converts it back to FileMaker Pro formatting.  
 
+
 NOTES:
-GetAsCSS does not encode some styles such as DoubleUnderline, so it's not this CF's fault when those don't get converted back to styled text.
+- GetAsCSS does not detect the HighlightYellow style, so we don't include.
 
 */
+If (PatternCount (Text ; "<span") = 0 ; Substitute (text ; "<br>" ;  "¶" ) ;
 
-If ( PatternCount ( text ; "<span" ) = 0 ; Substitute ( text ; "<br>" ; "¶" ) ;
-
-While ([
-	~res = text ;
-	~MoreSpansExist = True
-];
-~MoreSpansExist ;
-[
-	// Grabs SPAN string
-	~SpanStart = Position ( ~res ; "<span" ; 0 ; 1 ) ; 
-	~SpanEnd= Position ( ~res ; ">" ; ~SpanStart ; 1 ) +1 ; 
-	~Span = Middle ( ~res ; ~SpanStart ; ~SpanEnd - ~SpanStart ) ; 
+	Let ([
+		// Grabs SPAN string
+		~SpanStart = Position ( text ; "<span" ; 0 ; 1 ) ; 
+		~SpanEnd=Position ( text ; ">" ; ~SpanStart ; 1 ) +1 ; 
+		~Span = Middle ( text ; ~SpanStart ; ~SpanEnd - ~SpanStart ) ; 
 
 
-	// Grabs Full SPAN string between SPAN tags
-	~FullSpanStart = Position ( ~res ; "<span" ; 1 ; 1 ) ; 
-	~FullSpanEnd = Position ( ~res ; "</span>" ; ~FullSpanStart ; 1 ) + 7 ;
-	~FullSpan = Middle ( ~res ; ~FullSpanStart ; ~FullSpanEnd - ~FullSpanStart ) ;
+		// Grabs Full SPAN string between SPAN tags
+		~FullSpanStart = Position ( text ; "<span" ; 1 ; 1 ) ; 
+		~FullSpanEnd = Position ( text ; "</span>" ; ~FullSpanStart ; 1 ) + 7 ;
+		~FullSpan = Middle ( text ; ~FullSpanStart ; ~FullSpanEnd - ~FullSpanStart ) ;
 
 
-	// Grabs only text between span tags
-	~TextStart =  Position ( ~FullSpan ; ">" ; 0; 1 )+1  ;
-	~TextEnd =  Position ( ~FullSpan ; "</span>" ; 0 ; 1 ) ;
-	~TextSpan = Middle ( ~FullSpan ; ~TextStart ; ~TextEnd - ~TextStart ) ;
+		// Grabs only text between span tags
+		~TextStart =  Position ( ~FullSpan ; ">" ; 0; 1 )+1  ;
+		~TextEnd =  Position ( ~FullSpan ; "</span>" ; 0 ; 1 ) ;
+		~TextSpan = Middle ( ~FullSpan ; ~TextStart ; ~TextEnd - ~TextStart ) ;
 
-	// swaps out breaks with FileMaker return markers
-	~Text = Substitute ( 
-		~TextSpan ; 
-		["<br>" ; "¶" ];
-		["<br/>" ; "¶" ]
-	) ;
+		// swaps out breaks with FileMaker return markers
+		~Text = Substitute ( 
+			~TextSpan ; 
+			["<br>" ; "¶" ];
+			["<br/>" ; "¶" ]
+		) ;
 
 
-	// Collects Text Styles
-	~styles = If ( PatternCount ( ~Span ; "Bold" ) = 1 ; "+Bold" ; "" ) 
-	& If ( PatternCount ( ~Span ; "Italic" ) = 1 ; "+Italic" ; "" ) 
-	& If ( PatternCount ( ~Span ; "Underline" ) = 1 ; "+Underline" ; "" ) 
-	& If ( PatternCount ( ~Span ; "letter-spacing: -2px" ) = 1 ; "+Condense" ; "" ) 
-	& If ( PatternCount ( ~Span ; "letter-spacing: 2px" ) = 1 ; "+Extend" ; "" ) 
-	& If ( PatternCount ( ~Span ; "text-decoration:line-through" ) = 1 ; "+Strikethrough" ; "" ) 
-	& If ( PatternCount ( ~Span ; "small-caps" ) = 1 ; "+SmallCaps" ; "" ) 
-	& If ( PatternCount ( ~Span ; "vertical-align: text-top" ) = 1 ; "+Superscript" ; "" ) 
-	& If ( PatternCount ( ~Span ; "vertical-align: text-bottom" ) = 1 ; "+Subscript" ; "" ) 
-	& If ( PatternCount ( ~Span ; "Uppercase" ) = 1 ; "+Uppercase" ; "" ) 
-	& If ( PatternCount ( ~Span ; "Lowercase" ) = 1 ; "+Lowercase" ; "" ) 
-	& If ( PatternCount ( ~Span ; "capitalize" ) = 1 ; "+Titlecase" ; "" ) 
-	& If ( PatternCount ( ~Span ; "WordUnderline" ) = 1 ; "+WordUnderline" ; "" ) 
-	& If ( PatternCount ( ~Span ; "DoubleUnderline" ) = 1 ; "+DoubleUnderline" ; "" ) 
-	& If ( PatternCount ( ~Span ; "background-color: #FFFF00" ) = 1 ; "+HighlightYellow" ; "" ) ;
+		// Collects Text Styles
+		~styles = If ( PatternCount ( ~Span ; "Bold" ) = 1 ; "+Bold" ; "" ) 
+		& If ( PatternCount ( ~Span ; "Italic" ) = 1 ; "+Italic" ; "" ) 
+		& If ( PatternCount ( ~Span ; "Underline" ) = 1 ; "+Underline" ; "" ) 
+		& If ( PatternCount ( ~Span ; "Condense" ) = 1 ; "+Condense" ; "" ) 
+		& If ( PatternCount ( ~Span ; "Extend" ) = 1 ; "+Extend" ; "" ) 
+		& If ( PatternCount ( ~Span ; "Strikethrough" ) = 1 ; "+Strikethrough" ; "" ) 
+		& If ( PatternCount ( ~Span ; "SmallCaps" ) = 1 ; "+SmallCaps" ; "" ) 
+		& If ( PatternCount ( ~Span ; "vertical-align: text-top" ) = 1 ; "+Superscript" ; "" ) 
+		& If ( PatternCount ( ~Span ; "vertical-align: text-bottom" ) = 1 ; "+Subscript" ; "" ) 
+		& If ( PatternCount ( ~Span ; "Uppercase" ) = 1 ; "+Uppercase" ; "" ) 
+		& If ( PatternCount ( ~Span ; "Lowercase" ) = 1 ; "+Lowercase" ; "" ) 
+		& If ( PatternCount ( ~Span ; "Titlecase" ) = 1 ; "+Titlecase" ; "" ) 
+		& If ( PatternCount ( ~Span ; "WordUnderline" ) = 1 ; "+WordUnderline" ; "" ) 
+		& If ( PatternCount ( ~Span ; "DoubleUnderline" ) = 1 ; "+DoubleUnderline" ; "" ) 
+		& If ( PatternCount ( ~Span ; "background-color: #FFFF00" ) = 1 ; "+HighlightYellow" ; "" ) ;
 
-	~stylesTrue = If ( IsEmpty (~styles) ; "" ; Right (~styles ; Length (~styles) -1) ) ;
+		~stylesTrue = If ( IsEmpty (~styles) ; "" ; Right (~styles ; Length (~styles) -1) ) ;
 
-	~hasTextDecoration = Position ( ~Span ; "text-decoration:" ; 1 ; 1 ) <> 0 ;
+		// Parses out font size
+		~FontSize = If ( 
+			PatternCount (~Span ; "font-size") = 0 ; 
+			"" ; 
+			Let ( [ 
+				~SizeStart = Position ( ~Span; "font-size"; 0; 1) ;
+				~SizeStop = Position ( ~Span; "px"; ~SizeStart; 1) ; 
+				~SizeString = Middle ( ~Span; ~SizeStart ; ~SizeStop - ~SizeStart + 1 )
+			]; 
+				Filter ( ~SizeString; "0123456789") 
+			)
+		) ;
 
-	// Parses out font size
-	~FontSize = If ( 
-		PatternCount (~Span ; "font-size") = 0 ; 
-		"" ; 
-		Let ( [ 
-			~SizeStart = Position ( ~Span; "font-size"; 0; 1) ;
-			~SizeStop = Position ( ~Span; "px"; ~SizeStart; 1) ; 
-			~SizeString = Middle ( ~Span; ~SizeStart ; ~SizeStop - ~SizeStart + 1 )
-		]; 
-			Filter ( ~SizeString; "0123456789") 
+
+		// Adjusts font size for Sub/Super-script
+		~FontSize = Case ( 
+			PatternCount ( ~styles ; "Superscript" ) + PatternCount ( ~styles ; "Subscript" ) = 0 ; 
+			~FontSize ;
+			~FontSize * 2
+		) ;
+
+
+		// Parses out font-family
+		~FontType = If ( 
+			PatternCount (~Span ; "font-family") = 0 ; 
+			"" ; 
+			Let ( [ 
+				~FontStart = Position ( ~Span; "font-family"; 0; 1) ;
+				~FontStartTrue = Position ( ~Span; "'"; ~FontStart; 1) ;
+				~FontStop = Position ( ~Span; "'"; ~FontStart; 2) 
+			];  
+				Substitute ( Middle ( ~Span; ~FontStartTrue ; ~FontStop - ~FontStartTrue + 1 ) ; "'" ; "\"" )
+			)
+		) ;
+
+
+		//Converts Font Color
+		~FontColor =  If ( 
+			PatternCount (~Span ; ";color:") = 0 and PatternCount (~Span ; "\"color:") = 0 ; 
+			"" ; 
+			Let ( [ 
+				~colorStart = Position ( ~Span; "#"; 0; 1) ;
+				~colorHex =  Middle ( ~Span; ~colorStart + 1 ; 6 ) ;
+				~HexClean = Trim ( Filter ( Upper ( ~colorHex  ) ; "0123456789ABCDEF" ) ) ;
+				~HexSplit =  
+					"(" & ( Middle ( ~HexClean ; 1 ; 1 ) & "* 16 + " & Middle ( ~HexClean ; 2 ; 1 ) ) & ")* 65536 +" & 
+					"(" & ( Middle ( ~HexClean ; 3 ; 1 ) & "* 16 + " & Middle ( ~HexClean ; 4 ; 1 ) ) & ")* 256 +" &
+					"(" & ( Middle ( ~HexClean ; 5 ; 1 ) & "* 16 + " & Middle ( ~HexClean ; 6 ; 1 ) ) & ")"
+			];
+				Evaluate ( Substitute ( ~HexSplit ; [ "A" ; 10 ] ; [ "B" ; 11 ] ; [ "C" ; 12 ] ; [ "D" ; 13 ] ; [ "E" ; 14 ] ; [ "F" ; 15 ] ) )
+			)
+		) ;
+
+
+		// converts the text string between the span tags into the filemaker conversions from the above
+		~ConvertedText = If ( IsEmpty ( ~stylesTrue ) ; ~Text ; TextStyleAdd ( ~Text ; Evaluate ( ~stylesTrue ) ) ) ;
+		~ConvertedText = If ( IsEmpty ( ~FontSize ) ; ~ConvertedText ; TextSize ( ~ConvertedText ; ~FontSize ) ) ;
+		~ConvertedText = If ( IsEmpty ( ~FontType ) ; ~ConvertedText ; TextFont ( ~ConvertedText ; Evaluate (~FontType) ) ) ;
+		~ConvertedText = If ( IsEmpty ( ~FontColor ) ; ~ConvertedText ; TextColor ( ~ConvertedText ; ~FontColor ) ) ;
+
+
+		// replaces the span string with the converted string.
+		~NewText = Substitute ( text ; ~FullSpan ; ~ConvertedText )
+
+	];
+		// returns converted text, or looks for more spans to swap out.
+		If (
+			PatternCount ( ~NewText ; "<span style" ) > 0 ; 
+			CSStoFMText ( ~NewText ) ; 
+			// finally swap out html entitiy codes for the original characters
+			Substitute ( ~NewText ;
+				[ "&amp;" ; "&" ] ;
+				[ "&lt;" ; "<" ] ;
+				[ "&gt;" ; ">" ] ;
+				[ "&quot;" ; "\"" ] ;
+				[ "&apos;" ; "'" ] ; // it appears getascss doesn't convert this one, but it doesn't hurt
+				[ "&nbsp;" ; Char(160) ] ; // non-breaking space
+				[ "&copy;" ;  "©" ] ;
+				[ "&reg;" ;  "®" ] ;
+				[ "&mdash;" ;  Char(8212) ] ;
+				[ "&ndash;" ;  Char(8211) ] ;
+				[ "&euro;" ;  "€" ] ;
+				[ "&pound;" ;  "£" ] ;
+				[ "&cent;" ;  "¢" ] ;
+				[ "&deg;" ;  "°" ]
+			)
 		)
-	) ;
 
-
-	// Adjusts font size for Sub/Super-script
-	~FontSize = Case ( 
-		PatternCount ( ~styles ; "Superscript" ) + PatternCount ( ~styles ; "Subscript" ) = 0 ; 
-		~FontSize ;
-		~FontSize * 2
-	) ;
-
-
-	// Parses out font-family
-	~FontType = If ( 
-		PatternCount (~Span ; "font-family") = 0 ; 
-		"" ; 
-		Let ( [ 
-			~FontStart = Position ( ~Span; "font-family"; 0; 1) ;
-			~FontStartTrue = Position ( ~Span; "'"; ~FontStart; 1) ;
-			~FontStop = Position ( ~Span; "'"; ~FontStart; 2) ;
-			// includes surrounding singlequotes
-			~Quoted = Middle ( ~Span; ~FontStartTrue ; ~FontStop - ~FontStartTrue + 1 )
-		]; 
-			// remove the singlequotes (avoid using `Evaluate` to prevent injection attacks)
-			Middle ( ~Quoted ; 2 ; Length ( ~Quoted ) - 2 )				
-		)
-	) ;
-
-
-	//Converts Font Color
-	~FontColor =  If ( 
-		PatternCount (~Span ; ";color:") = 0 and PatternCount (~Span ; "\"color:") = 0 ; 
-		"" ; 
-		Let ( [ 
-			~colorStart = Position ( ~Span; "#"; 0; 1) ;
-			~colorHex =  Middle ( ~Span; ~colorStart + 1 ; 6 ) ;
-			~HexClean = Trim ( Filter ( Upper ( ~colorHex  ) ; "0123456789ABCDEF" ) ) ;
-			~HexSplit =  
-				"(" & ( Middle ( ~HexClean ; 1 ; 1 ) & "* 16 + " & Middle ( ~HexClean ; 2 ; 1 ) ) & ")* 65536 +" & 
-				"(" & ( Middle ( ~HexClean ; 3 ; 1 ) & "* 16 + " & Middle ( ~HexClean ; 4 ; 1 ) ) & ")* 256 +" &
-				"(" & ( Middle ( ~HexClean ; 5 ; 1 ) & "* 16 + " & Middle ( ~HexClean ; 6 ; 1 ) ) & ")"
-		];
-			Evaluate ( Substitute ( ~HexSplit ; [ "A" ; 10 ] ; [ "B" ; 11 ] ; [ "C" ; 12 ] ; [ "D" ; 13 ] ; [ "E" ; 14 ] ; [ "F" ; 15 ] ) )
-		)
-	) ;
-
-
-	// converts the text string between the span tags into the filemaker conversions from the above
-	~ConvertedText = If ( IsEmpty ( ~stylesTrue ) ; ~Text ; TextStyleAdd ( ~Text ; Evaluate ( ~stylesTrue ) ) ) ;
-	~ConvertedText = If ( IsEmpty ( ~FontSize ) ; ~ConvertedText ; TextSize ( ~ConvertedText ; ~FontSize ) ) ;
-	~ConvertedText = If ( IsEmpty ( ~FontType ) ; ~ConvertedText ; TextFont ( ~ConvertedText ; ~FontType ) ) ;
-	~ConvertedText = If ( IsEmpty ( ~FontColor ) ; ~ConvertedText ; TextColor ( ~ConvertedText ; ~FontColor ) ) ;
-	// text decorations like strikethrough and underline seem to be "sticky", so expicitly unset them by appending a style-less span after
-	~ConvertedText = If ( ~hasTextDecoration ; ~ConvertedText & "<span style=\"\" ></span>" ; ~ConvertedText ) ;
-
-
-	// replaces the span string with the converted string.
-	~res = Substitute ( ~res ; ~FullSpan ; ~ConvertedText ) ;
-
-	~MoreSpansExist = Position ( ~res ; "<span" ; 0 ; 1 ) <> 0
-
-];
-
-	Substitute ( ~res ;
-		[ "&amp;" ; "&" ] ;
-		[ "&lt;" ; "<" ] ;
-		[ "&gt;" ; ">" ] ;
-		[ "&quot;" ; "\"" ] ;
-		[ "&apos;" ; "'" ] ; // it appears getascss doesn't convert this one, but it doesn't hurt
-		[ "&nbsp;" ; Char(160) ] ; // non-breaking space
-		[ "&copy;" ;  "©" ] ;
-		[ "&reg;" ;  "®" ] ;
-		[ "&mdash;" ;  Char(8212) ] ;
-		[ "&ndash;" ;  Char(8211) ] ;
-		[ "&euro;" ;  "€" ] ;
-		[ "&pound;" ;  "£" ] ;
-		[ "&cent;" ;  "¢" ] ;
-		[ "&deg;" ;  "°" ] ;
-		[ "&bull;" ; "•" ]
-	)
-
-) // End While
+	) // End Let
 
 ) // End If
