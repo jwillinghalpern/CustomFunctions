@@ -35,14 +35,14 @@ v2.2 Mar 26, 2019	Josh Willing
 - remove fontscript reference. FM no longer uses it as of 15: https://fmhelp.filemaker.com/help/15/fmp/en/index.html#page/FMP_Help/textfont.html 
 
 v2.1 May 15, 2010
-- Fixed the errors brought up in the comments.  Sorry it took so long to get around to it!  Thanks to Kevin Frank for spotting the comment, and sending me a fixed version.
+- Fixed the errors brought up in the comments. Sorry it took so long to get around to it! Thanks to Kevin Frank for spotting the comment, and sending me a fixed version.
 
 v2.0 April 06, 2009
-- now includes if statements wrapped around main function in case input text doesn't have any SPAN tags.  (Otherwise, part of the beginning of the text gets chopped off)
+- now includes if statements wrapped around main function in case input text doesn't have any SPAN tags. (Otherwise, part of the beginning of the text gets chopped off)
 - simplified conversion of Hex Color to straight color decimal value instead of intermediary RGB.
 
 Description:
-This takes CSS styled text and converts it back to FileMaker Pro formatting.  
+This takes CSS styled text and converts it back to FileMaker Pro formatting. 
 
 NOTES:
 GetAsCSS does not encode some styles such as DoubleUnderline, so it's not this CF's fault when those don't get converted back to styled text.
@@ -70,8 +70,8 @@ While ([
 
 
 	// Grabs only text between span tags
-	~TextStart =  Position ( ~FullSpan ; ">" ; 0; 1 )+1  ;
-	~TextEnd =  Position ( ~FullSpan ; "</span>" ; 0 ; 1 ) ;
+	~TextStart = Position ( ~FullSpan ; ">" ; 0; 1 )+1 ;
+	~TextEnd = Position ( ~FullSpan ; "</span>" ; 0 ; 1 ) ;
 	~TextSpan = Middle ( ~FullSpan ; ~TextStart ; ~TextEnd - ~TextStart ) ;
 
 	// swaps out breaks with FileMaker return markers
@@ -149,8 +149,8 @@ While ([
 		Let ( [
 			_HEX_POSITIONS = "123456789ABCDEF" ;
 			~colorStart = Position ( ~Span; "#"; 0; 1) ;
-			~colorHex =  Middle ( ~Span; ~colorStart + 1 ; 6 ) ;
-			~HexClean = Trim ( Filter ( Upper ( ~colorHex  ) ; "0" & _HEX_POSITIONS ) ) ;
+			~colorHex = Middle ( ~Span; ~colorStart + 1 ; 6 ) ;
+			~HexClean = Trim ( Filter ( Upper ( ~colorHex ) ; "0" & _HEX_POSITIONS ) ) ;
 			~R = 16 * Position( _HEX_POSITIONS ; Middle( ~HexClean ; 1 ; 1 ) ; 1 ; 1) + Position( _HEX_POSITIONS ; Middle( ~HexClean ; 2 ; 1 ) ; 1 ; 1);
 			~G = 16 * Position( _HEX_POSITIONS ; Middle( ~HexClean ; 3 ; 1 ) ; 1 ; 1) + Position( _HEX_POSITIONS ; Middle( ~HexClean ; 4 ; 1 ) ; 1 ; 1);
 			~B = 16 * Position( _HEX_POSITIONS ; Middle( ~HexClean ; 5 ; 1 ) ; 1 ; 1) + Position( _HEX_POSITIONS ; Middle( ~HexClean ; 6 ; 1 ) ; 1 ; 1 )
@@ -183,14 +183,14 @@ While ([
 		[ "&quot;" ; "\"" ] ;
 		[ "&apos;" ; "'" ] ; // it appears getascss doesn't convert this one, but it doesn't hurt
 		[ "&nbsp;" ; Char(160) ] ; // non-breaking space
-		[ "&copy;" ;  "©" ] ;
-		[ "&reg;" ;  "®" ] ;
-		[ "&mdash;" ;  Char(8212) ] ;
-		[ "&ndash;" ;  Char(8211) ] ;
-		[ "&euro;" ;  "€" ] ;
-		[ "&pound;" ;  "£" ] ;
-		[ "&cent;" ;  "¢" ] ;
-		[ "&deg;" ;  "°" ] ;
+		[ "&copy;" ; "©" ] ;
+		[ "&reg;" ; "®" ] ;
+		[ "&mdash;" ; Char(8212) ] ;
+		[ "&ndash;" ; Char(8211) ] ;
+		[ "&euro;" ; "€" ] ;
+		[ "&pound;" ; "£" ] ;
+		[ "&cent;" ; "¢" ] ;
+		[ "&deg;" ; "°" ] ;
 		[ "&bull;" ; "•" ]
 	)
 
