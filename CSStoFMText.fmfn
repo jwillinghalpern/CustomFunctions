@@ -2,8 +2,9 @@
 by Christopher Gauntt, Cordega Solutions, www.cordega.com
 solutions@cordega.com
 
-v2.9 DEC 6, 2025	Josh Willing (code courtesy of steve_ssh)
+v2.9 DEC 6, 2025	steve_ssh
 - accumulate styles as a number (sum of style constants) rather than string to be evaluated.
+- calculate font color arithmetically rather than using Evaluate.
 
 v2.8 DEC 5, 2025	Josh Willing
 - convert from recursion to While iteration
@@ -142,19 +143,19 @@ While ([
 
 
 	//Converts Font Color
-	~FontColor =  If ( 
+	~FontColor = If ( 
 		PatternCount (~Span ; ";color:") = 0 and PatternCount (~Span ; "\"color:") = 0 ; 
 		"" ; 
-		Let ( [ 
+		Let ( [
+			_HEX_POSITIONS = "123456789ABCDEF" ;
 			~colorStart = Position ( ~Span; "#"; 0; 1) ;
 			~colorHex =  Middle ( ~Span; ~colorStart + 1 ; 6 ) ;
-			~HexClean = Trim ( Filter ( Upper ( ~colorHex  ) ; "0123456789ABCDEF" ) ) ;
-			~HexSplit =  
-				"(" & ( Middle ( ~HexClean ; 1 ; 1 ) & "* 16 + " & Middle ( ~HexClean ; 2 ; 1 ) ) & ")* 65536 +" & 
-				"(" & ( Middle ( ~HexClean ; 3 ; 1 ) & "* 16 + " & Middle ( ~HexClean ; 4 ; 1 ) ) & ")* 256 +" &
-				"(" & ( Middle ( ~HexClean ; 5 ; 1 ) & "* 16 + " & Middle ( ~HexClean ; 6 ; 1 ) ) & ")"
+			~HexClean = Trim ( Filter ( Upper ( ~colorHex  ) ; "0" & _HEX_POSITIONS ) ) ;
+			~R = 16 * Position( _HEX_POSITIONS ; Middle( ~HexClean ; 1 ; 1 ) ; 1 ; 1) + Position( _HEX_POSITIONS ; Middle( ~HexClean ; 2 ; 1 ) ; 1 ; 1);
+			~G = 16 * Position( _HEX_POSITIONS ; Middle( ~HexClean ; 3 ; 1 ) ; 1 ; 1) + Position( _HEX_POSITIONS ; Middle( ~HexClean ; 4 ; 1 ) ; 1 ; 1);
+			~B = 16 * Position( _HEX_POSITIONS ; Middle( ~HexClean ; 5 ; 1 ) ; 1 ; 1) + Position( _HEX_POSITIONS ; Middle( ~HexClean ; 6 ; 1 ) ; 1 ; 1 )
 		];
-			Evaluate ( Substitute ( ~HexSplit ; [ "A" ; 10 ] ; [ "B" ; 11 ] ; [ "C" ; 12 ] ; [ "D" ; 13 ] ; [ "E" ; 14 ] ; [ "F" ; 15 ] ) )
+			RGB( ~R ; ~G ; ~B )
 		)
 	) ;
 
