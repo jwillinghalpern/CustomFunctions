@@ -2,6 +2,10 @@
 by Christopher Gauntt, Cordega Solutions, www.cordega.com
 solutions@cordega.com
 
+v2.9 DEC 6, 2025	steve_ssh
+- accumulate styles as a number (sum of style constants) rather than string to be evaluated.
+- calculate font color arithmetically rather than using Evaluate.
+
 v2.8 DEC 5, 2025	Josh Willing
 - convert from recursion to While iteration
 - support bullet points
@@ -31,14 +35,14 @@ v2.2 Mar 26, 2019	Josh Willing
 - remove fontscript reference. FM no longer uses it as of 15: https://fmhelp.filemaker.com/help/15/fmp/en/index.html#page/FMP_Help/textfont.html 
 
 v2.1 May 15, 2010
-- Fixed the errors brought up in the comments.  Sorry it took so long to get around to it!  Thanks to Kevin Frank for spotting the comment, and sending me a fixed version.
+- Fixed the errors brought up in the comments. Sorry it took so long to get around to it! Thanks to Kevin Frank for spotting the comment, and sending me a fixed version.
 
 v2.0 April 06, 2009
-- now includes if statements wrapped around main function in case input text doesn't have any SPAN tags.  (Otherwise, part of the beginning of the text gets chopped off)
+- now includes if statements wrapped around main function in case input text doesn't have any SPAN tags. (Otherwise, part of the beginning of the text gets chopped off)
 - simplified conversion of Hex Color to straight color decimal value instead of intermediary RGB.
 
 Description:
-This takes CSS styled text and converts it back to FileMaker Pro formatting.  
+This takes CSS styled text and converts it back to FileMaker Pro formatting. 
 
 NOTES:
 GetAsCSS does not encode some styles such as DoubleUnderline, so it's not this CF's fault when those don't get converted back to styled text.
@@ -66,8 +70,8 @@ While ([
 
 
 	// Grabs only text between span tags
-	~TextStart =  Position ( ~FullSpan ; ">" ; 0; 1 )+1  ;
-	~TextEnd =  Position ( ~FullSpan ; "</span>" ; 0 ; 1 ) ;
+	~TextStart = Position ( ~FullSpan ; ">" ; 0; 1 )+1 ;
+	~TextEnd = Position ( ~FullSpan ; "</span>" ; 0 ; 1 ) ;
 	~TextSpan = Middle ( ~FullSpan ; ~TextStart ; ~TextEnd - ~TextStart ) ;
 
 	// swaps out breaks with FileMaker return markers
@@ -79,23 +83,23 @@ While ([
 
 
 	// Collects Text Styles
-	~styles = If ( PatternCount ( ~Span ; "Bold" ) = 1 ; "+Bold" ; "" ) 
-	& If ( PatternCount ( ~Span ; "Italic" ) = 1 ; "+Italic" ; "" ) 
-	& If ( PatternCount ( ~Span ; "Underline" ) = 1 ; "+Underline" ; "" ) 
-	& If ( PatternCount ( ~Span ; "letter-spacing: -2px" ) = 1 ; "+Condense" ; "" ) 
-	& If ( PatternCount ( ~Span ; "letter-spacing: 2px" ) = 1 ; "+Extend" ; "" ) 
-	& If ( PatternCount ( ~Span ; "text-decoration:line-through" ) = 1 ; "+Strikethrough" ; "" ) 
-	& If ( PatternCount ( ~Span ; "small-caps" ) = 1 ; "+SmallCaps" ; "" ) 
-	& If ( PatternCount ( ~Span ; "vertical-align: text-top" ) = 1 ; "+Superscript" ; "" ) 
-	& If ( PatternCount ( ~Span ; "vertical-align: text-bottom" ) = 1 ; "+Subscript" ; "" ) 
-	& If ( PatternCount ( ~Span ; "Uppercase" ) = 1 ; "+Uppercase" ; "" ) 
-	& If ( PatternCount ( ~Span ; "Lowercase" ) = 1 ; "+Lowercase" ; "" ) 
-	& If ( PatternCount ( ~Span ; "capitalize" ) = 1 ; "+Titlecase" ; "" ) 
-	& If ( PatternCount ( ~Span ; "WordUnderline" ) = 1 ; "+WordUnderline" ; "" ) 
-	& If ( PatternCount ( ~Span ; "DoubleUnderline" ) = 1 ; "+DoubleUnderline" ; "" ) 
-	& If ( PatternCount ( ~Span ; "background-color: #FFFF00" ) = 1 ; "+HighlightYellow" ; "" ) ;
-
-	~stylesTrue = If ( IsEmpty (~styles) ; "" ; Right (~styles ; Length (~styles) -1) ) ;
+	~SuperscriptSearchString = "vertical-align: text-top" ;
+	~SubscriptSearchString = "vertical-align: text-bottom" ;
+	~styles = If ( PatternCount ( ~Span ; "Bold" ) = 1 ; Bold ; 0 ) 
+	+ If ( PatternCount ( ~Span ; "Italic" ) = 1 ; Italic ; 0 ) 
+	+ If ( PatternCount ( ~Span ; "Underline" ) = 1 ; Underline ; 0 ) 
+	+ If ( PatternCount ( ~Span ; "letter-spacing: -2px" ) = 1 ; Condense ; 0 ) 
+	+ If ( PatternCount ( ~Span ; "letter-spacing: 2px" ) = 1 ; Extend ; 0 ) 
+	+ If ( PatternCount ( ~Span ; "text-decoration:line-through" ) = 1 ; Strikethrough ; 0 ) 
+	+ If ( PatternCount ( ~Span ; "small-caps" ) = 1 ; SmallCaps ; 0 ) 
+	+ If ( PatternCount ( ~Span ; ~SuperscriptSearchString ) = 1 ; Superscript ; 0 ) 
+	+ If ( PatternCount ( ~Span ; ~SubscriptSearchString ) = 1 ; Subscript ; 0 ) 
+	+ If ( PatternCount ( ~Span ; "Uppercase" ) = 1 ; Uppercase ; 0 ) 
+	+ If ( PatternCount ( ~Span ; "Lowercase" ) = 1 ; Lowercase ; 0 ) 
+	+ If ( PatternCount ( ~Span ; "capitalize" ) = 1 ; Titlecase ; 0 ) 
+	+ If ( PatternCount ( ~Span ; "WordUnderline" ) = 1 ; WordUnderline ; 0 ) 
+	+ If ( PatternCount ( ~Span ; "DoubleUnderline" ) = 1 ; DoubleUnderline ; 0 ) 
+	+ If ( PatternCount ( ~Span ; "background-color: #FFFF00" ) = 1 ; HighlightYellow ; 0 ) ;
 
 	~hasTextDecoration = Position ( ~Span ; "text-decoration:" ; 1 ; 1 ) <> 0 ;
 
@@ -115,7 +119,7 @@ While ([
 
 	// Adjusts font size for Sub/Super-script
 	~FontSize = Case ( 
-		PatternCount ( ~styles ; "Superscript" ) + PatternCount ( ~styles ; "Subscript" ) = 0 ; 
+		PatternCount ( ~Span ; ~SuperscriptSearchString ) + PatternCount ( ~Span ; ~SubscriptSearchString ) = 0 ; 
 		~FontSize ;
 		~FontSize * 2
 	) ;
@@ -139,25 +143,25 @@ While ([
 
 
 	//Converts Font Color
-	~FontColor =  If ( 
+	~FontColor = If ( 
 		PatternCount (~Span ; ";color:") = 0 and PatternCount (~Span ; "\"color:") = 0 ; 
 		"" ; 
-		Let ( [ 
+		Let ( [
+			_HEX_POSITIONS = "123456789ABCDEF" ;
 			~colorStart = Position ( ~Span; "#"; 0; 1) ;
-			~colorHex =  Middle ( ~Span; ~colorStart + 1 ; 6 ) ;
-			~HexClean = Trim ( Filter ( Upper ( ~colorHex  ) ; "0123456789ABCDEF" ) ) ;
-			~HexSplit =  
-				"(" & ( Middle ( ~HexClean ; 1 ; 1 ) & "* 16 + " & Middle ( ~HexClean ; 2 ; 1 ) ) & ")* 65536 +" & 
-				"(" & ( Middle ( ~HexClean ; 3 ; 1 ) & "* 16 + " & Middle ( ~HexClean ; 4 ; 1 ) ) & ")* 256 +" &
-				"(" & ( Middle ( ~HexClean ; 5 ; 1 ) & "* 16 + " & Middle ( ~HexClean ; 6 ; 1 ) ) & ")"
+			~colorHex = Middle ( ~Span; ~colorStart + 1 ; 6 ) ;
+			~HexClean = Trim ( Filter ( Upper ( ~colorHex ) ; "0" & _HEX_POSITIONS ) ) ;
+			~R = 16 * Position( _HEX_POSITIONS ; Middle( ~HexClean ; 1 ; 1 ) ; 1 ; 1) + Position( _HEX_POSITIONS ; Middle( ~HexClean ; 2 ; 1 ) ; 1 ; 1);
+			~G = 16 * Position( _HEX_POSITIONS ; Middle( ~HexClean ; 3 ; 1 ) ; 1 ; 1) + Position( _HEX_POSITIONS ; Middle( ~HexClean ; 4 ; 1 ) ; 1 ; 1);
+			~B = 16 * Position( _HEX_POSITIONS ; Middle( ~HexClean ; 5 ; 1 ) ; 1 ; 1) + Position( _HEX_POSITIONS ; Middle( ~HexClean ; 6 ; 1 ) ; 1 ; 1 )
 		];
-			Evaluate ( Substitute ( ~HexSplit ; [ "A" ; 10 ] ; [ "B" ; 11 ] ; [ "C" ; 12 ] ; [ "D" ; 13 ] ; [ "E" ; 14 ] ; [ "F" ; 15 ] ) )
+			RGB( ~R ; ~G ; ~B )
 		)
 	) ;
 
 
 	// converts the text string between the span tags into the filemaker conversions from the above
-	~ConvertedText = If ( IsEmpty ( ~stylesTrue ) ; ~Text ; TextStyleAdd ( ~Text ; Evaluate ( ~stylesTrue ) ) ) ;
+	~ConvertedText = If ( ~styles = 0 ; ~Text ; TextStyleAdd ( ~Text ; ~styles ) ) ;
 	~ConvertedText = If ( IsEmpty ( ~FontSize ) ; ~ConvertedText ; TextSize ( ~ConvertedText ; ~FontSize ) ) ;
 	~ConvertedText = If ( IsEmpty ( ~FontType ) ; ~ConvertedText ; TextFont ( ~ConvertedText ; ~FontType ) ) ;
 	~ConvertedText = If ( IsEmpty ( ~FontColor ) ; ~ConvertedText ; TextColor ( ~ConvertedText ; ~FontColor ) ) ;
@@ -179,14 +183,14 @@ While ([
 		[ "&quot;" ; "\"" ] ;
 		[ "&apos;" ; "'" ] ; // it appears getascss doesn't convert this one, but it doesn't hurt
 		[ "&nbsp;" ; Char(160) ] ; // non-breaking space
-		[ "&copy;" ;  "©" ] ;
-		[ "&reg;" ;  "®" ] ;
-		[ "&mdash;" ;  Char(8212) ] ;
-		[ "&ndash;" ;  Char(8211) ] ;
-		[ "&euro;" ;  "€" ] ;
-		[ "&pound;" ;  "£" ] ;
-		[ "&cent;" ;  "¢" ] ;
-		[ "&deg;" ;  "°" ] ;
+		[ "&copy;" ; "©" ] ;
+		[ "&reg;" ; "®" ] ;
+		[ "&mdash;" ; Char(8212) ] ;
+		[ "&ndash;" ; Char(8211) ] ;
+		[ "&euro;" ; "€" ] ;
+		[ "&pound;" ; "£" ] ;
+		[ "&cent;" ; "¢" ] ;
+		[ "&deg;" ; "°" ] ;
 		[ "&bull;" ; "•" ]
 	)
 
