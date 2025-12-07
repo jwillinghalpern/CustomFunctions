@@ -1,7 +1,11 @@
 /* CSStoFMText ( text )
-by Christopher Gauntt, Cordega Solutions, www.cordega.com
-solutions@cordega.com
 
+CONTRIBUTORS:
+- Christopher Gauntt, Cordega Solutions, www.cordega.com, solutions@cordega.com
+- Josh Willing
+- steve_ssh
+
+REVISIONS:
 v2.9 DEC 6, 2025	steve_ssh
 - accumulate styles as a number (sum of style constants) rather than string to be evaluated.
 - calculate font color arithmetically rather than using Evaluate.
@@ -41,8 +45,8 @@ v2.0 April 06, 2009
 - now includes if statements wrapped around main function in case input text doesn't have any SPAN tags. (Otherwise, part of the beginning of the text gets chopped off)
 - simplified conversion of Hex Color to straight color decimal value instead of intermediary RGB.
 
-Description:
-This takes CSS styled text and converts it back to FileMaker Pro formatting. 
+DESCRIPTION:
+Takes CSS styled text and converts it back to FileMaker Pro formatting. You can get CSS by calling GetAsCSS() on a styled fm field.
 
 NOTES:
 GetAsCSS does not encode some styles such as DoubleUnderline, so it's not this CF's fault when those don't get converted back to styled text.
