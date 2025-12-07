@@ -1,5 +1,5 @@
 /**
- * StyleSelectedValues ( fullList ; listToStyle ; style ; color ; one )
+ * StyleSelectedValues ( fullList ; listToStyle ; style ; color )
  * 
  * PARAMS:
  * 	fullList: the value list containing all the possible values
@@ -9,6 +9,9 @@
  * 	one: Always set to 1 or lower. Empty is ok too.
  * 
  * REVISIONS:
+ * 	2025-12-06	Claude 4 Sonnet
+ * 		- Fixed carriage return issue and converted from recursion to While() loop
+ * 		- JWH: remove superfluous Let() wrappers
  * 	2018-11-26	Joshua Willing	jwillinghalpern@gmail.com
  * 		- added style and color params.
  * 		- No longer styles the carriage returns between values, just the values.
@@ -16,19 +19,25 @@
  * 		- CREATED
  */
 
-
-// Check if there are no more values to check in listToStyle
-If ( Max ( one ; 1 ) > ValueCount ( listToStyle ) ; fullList ; 
-
-Let ([
-	~i = If ( one < 1 ; 1 ; one ) ;
-	~list = ¶ & fullList & ¶ ;
+While (
+[ 
+	~count = ValueCount ( listToStyle ) ;
+	~i = 1 ;
+	~currentList = fullList 
+] ;
+~i <= ~count ;
+[
 	~val = GetValue ( listToStyle ; ~i ) ;
-	~newList = Substitute ( ¶ & fullList & ¶ ; ¶ & ~val & ¶ ; ¶ & TextColor ( TextStyleAdd ( ~val ; style ) ; color ) & ¶ ) ;
-	~length = Length ( ~newList ) ;
-	~newList = Middle ( ~newList ; 2 ; ~length - 1 )
-];
-	StyleSelectedValues ( ~newList ; listToStyle ; style ; color ; ~i + 1 ) 
-)
+	~styledVal = TextColor ( TextStyleAdd ( ~val ; style ) ; color ) ;
+	~tempList = Substitute ( 
+		¶ & ~currentList & ¶ ; 
+		¶ & ~val & ¶ ; 
+		¶ & ~styledVal & ¶ 
+	) ;
+	~currentList = Middle ( ~tempList ; 2 ; Length ( ~tempList ) - 2 ) ;
+	~i = ~i + 1
+] ;
 
-) // End If
+~currentList
+
+)
