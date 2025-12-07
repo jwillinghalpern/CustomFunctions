@@ -1,0 +1,34 @@
+/**
+ * StyleSelectedValues ( fullList ; listToStyle ; style ; color ; one )
+ * 
+ * PARAMS:
+ * 	fullList: the value list containing all the possible values
+ * 	listToStyle: The values you want to style. (Like the values selected by a checkbox)
+ * 	style: a number useable by Filemaker's TextAddStyle() fn. E.g. 'bold + italic + underline'
+ * 	color: a number useable by Filemaker's TextColor() fn. e.g. 'RGB( 123 ; 12 ; 16 )'
+ * 	one: Always set to 1 or lower. Empty is ok too.
+ * 
+ * REVISIONS:
+ * 	2018-11-26	Joshua Willing	jwillinghalpern@gmail.com
+ * 		- added style and color params.
+ * 		- No longer styles the carriage returns between values, just the values.
+ * 	2018-11-22	Joshua Willing	jwillinghalpern@gmail.com
+ * 		- CREATED
+ */
+
+
+// Check if there are no more values to check in listToStyle
+If ( Max ( one ; 1 ) > ValueCount ( listToStyle ) ; fullList ; 
+
+Let ([
+	~i = If ( one < 1 ; 1 ; one ) ;
+	~list = ¶ & fullList & ¶ ;
+	~val = GetValue ( listToStyle ; ~i ) ;
+	~newList = Substitute ( ¶ & fullList & ¶ ; ¶ & ~val & ¶ ; ¶ & TextColor ( TextStyleAdd ( ~val ; style ) ; color ) & ¶ ) ;
+	~length = Length ( ~newList ) ;
+	~newList = Middle ( ~newList ; 2 ; ~length - 1 )
+];
+	StyleSelectedValues ( ~newList ; listToStyle ; style ; color ; ~i + 1 ) 
+)
+
+) // End If
